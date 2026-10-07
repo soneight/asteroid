@@ -22,7 +22,7 @@ add a comment matching the Licensor template, but include an additional empty li
 GNU Affero General Public License v3.0 or later
 NO WARRANTY OF ANY KIND more details at <https://www.gnu.org/licenses/>
 SPDX-License-Identifier: AGPL-3.0-or-later
-app: [`NAME`] [LEGEND]
+app: `asteroid` C++17 Shatter Cosmic Rocks Game
 
 [CONTRIBUTOR COPYRIGHT NOTICE]
 ```
@@ -36,6 +36,6 @@ source code files should end with comment about `license` name, `warranty` detai
 GNU Affero General Public License v3.0 or later
 NO WARRANTY OF ANY KIND more details at <https://www.gnu.org/licenses/>
 SPDX-License-Identifier: AGPL-3.0-or-later
-app: [`NAME`] [LEGEND]
+app: `asteroid` C++17 Shatter Cosmic Rocks Game
 Ⓒ Copyright (C) [YEAR] Oleg'Ease'Kharchuk ᦒ
 ```

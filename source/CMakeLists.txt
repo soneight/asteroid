@@ -15,3 +15,9 @@ target_link_libraries( ${SON8_APP_IMPL} PUBLIC ${SON8_APP_FACE} )
 add_executable( ${SON8_APP} )
 target_sources( ${SON8_APP} PRIVATE main.cxx )
 target_link_libraries( ${SON8_APP} PRIVATE ${SON8_APP_IMPL} )
+
+# GNU Affero General Public License v3.0 or later
+# NO WARRANTY OF ANY KIND more details at <https://www.gnu.org/licenses/>
+# SPDX-License-Identifier: AGPL-3.0-or-later
+# app: `asteroid` C++17 Shatter Cosmic Rocks Game
+# Ⓒ Copyright (C) 2026 Oleg'Ease'Kharchuk ᦒ

@@ -1,7 +1,9 @@
-# `TEMPLATE`
-> Project Legend
+# `ASTEROID`
+> C++17 Shatter Cosmic Rocks Game
 
-Project Overview
+Primarily project designed to battle-test [`matfourd`](https://github.com/soneight/matfourd) library by implementing
+simple ship destroying cosmic `asteroid`s game in three dimensional space,
+so it must heavy use `matfourd` entities whenever it possible
 
 ## [CONTRIBUTING](./CONTRIBUTING.md)
 > Project Contribution Rules
