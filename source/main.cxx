@@ -1,7 +1,16 @@
 #include "impl/face/app.hxx"
+// son8
+#include <son8/matfourd/print.hxx>
+// std
+#include <iostream>
 
 int main( [[maybe_unused]] int argc, [[maybe_unused]] char *argv[] ) {
    APP_ASSERT_MSG( argc == 1, "argc must contain one argument" );
+
+   using namespace app;
+
+   Col4x4f mat{ };
+   std::cout << mat << std::endl;
 }
 
 // GNU Affero General Public License v3.0 or later

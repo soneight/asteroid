@@ -1,6 +1,20 @@
 set( CMAKE_CXX_STANDARD 17 )
 set( CMAKE_CXX_STANDARD_REQUIRED ON )
 set( CMAKE_CXX_EXTENSIONS OFF )
+# deps
+# -- son8
+# ---- `matfourd`
+if( NOT TARGET son8__matfourd )
+   include( FetchContent )
+   message( STATUS "${SON8_APP}: FetchContent `soneight/matfourd`" )
+   fetchcontent_declare(
+      son8__matfourd
+      GIT_REPOSITORY https://github.com/soneight/matfourd.git
+      GIT_TAG        83f979910bfe4c1cc4c815031cb74b0599438b0a # v0.0.1
+   )
+   fetchcontent_makeavailable( son8__matfourd )
+endif( )
+message( STATUS "${SON8_APP}: target `son8__matfourd` found" )
 # app
 # -- face
 set( SON8_APP_FACE ${SON8_APP}_FACE )
@@ -10,7 +24,7 @@ target_compile_options( ${SON8_APP_FACE} INTERFACE $<$<CXX_COMPILER_ID:MSVC>:/ut
 set( SON8_APP_IMPL ${SON8_APP}_IMPL )
 add_library( ${SON8_APP_IMPL} STATIC )
 target_sources( ${SON8_APP_IMPL} PRIVATE impl/app.cxx )
-target_link_libraries( ${SON8_APP_IMPL} PUBLIC ${SON8_APP_FACE} )
+target_link_libraries( ${SON8_APP_IMPL} PUBLIC ${SON8_APP_FACE} son8::matfourd )
 # -- main
 add_executable( ${SON8_APP} )
 target_sources( ${SON8_APP} PRIVATE main.cxx )

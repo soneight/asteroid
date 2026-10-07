@@ -2,6 +2,7 @@
 #define SON8_APP_HXX
 
 #include <cassert>
+#include <son8/matfourd/mat.hxx>
 
 #ifndef APP_DEBUG
 #define APP_ASSERT( check ) ( (void)0 )
@@ -12,7 +13,9 @@
 #endif//APP_DEBUG
 
 namespace app {
+   namespace m4d = son8::matfourd;
 
+   using Col4x4f = m4d::Col4x4< float >;
 } // namespace app
 
 #endif//SON8_APP_HXX
