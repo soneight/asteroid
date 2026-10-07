@@ -1,0 +1,79 @@
+{
+    "version": 2,
+    "configurePresets": [{
+        "name": "local-base_",
+        "hidden": true,
+        "cacheVariables": {
+            "FETCHCONTENT_SOURCE_DIR_{TARGET_NAME}": "/path/to/target/source/directory"
+        }
+    }, {
+        "name": "local-debug_",
+        "hidden": true,
+        "environment": { "APP_DEBUG": "-DAPP_DEBUG" }
+    }, {
+        "name": "local-inner_",
+        "hidden": true,
+        "environment": { "APP_INNER": "-DAPP_INNER" }
+    }, {
+        "name": "local-error_",
+        "hidden": true,
+        "environment": { "APP_ERROR": "-DAPP_ERROR -Werror -Wall -Wextra -Wpedantic -Wshadow=local -Wconversion" }
+    }, {
+        "name": "local",
+        "inherits": [ "debug", "local-base_", "local-debug_", "local-inner_", "local-error_" ],
+        "displayName": "Local Debug Inner Error",
+        "binaryDir": "${sourceDir}/temp/presets_/local",
+        "cacheVariables": { "CMAKE_CXX_FLAGS": "$env{APP_DEBUG} $env{APP_INNER} $env{APP_ERROR}" }
+    }, {
+        "name": "local-flash",
+        "inherits": [ "flash", "local-base_", "local-inner_", "local-error_" ],
+        "displayName": "Local Flash Inner Error",
+        "binaryDir": "${sourceDir}/temp/presets_/local-flash",
+        "cacheVariables": { "CMAKE_CXX_FLAGS": "$env{APP_INNER} $env{APP_ERROR}" }
+    }, {
+        "name": "local-flash-outer",
+        "inherits": [ "flash", "local-base_", "local-error_" ],
+        "displayName": "Local Flash Outer Error",
+        "binaryDir": "${sourceDir}/temp/presets_/local-flash-outer",
+        "cacheVariables": { "CMAKE_CXX_FLAGS": "$env{APP_ERROR}" }
+    }, {
+        "name": "local-outer",
+        "inherits": [ "debug", "local-base_", "local-debug_", "local-error_"  ],
+        "displayName": "Local Debug Outer Error",
+        "binaryDir": "${sourceDir}/temp/presets_/local-outer",
+        "cacheVariables": { "CMAKE_CXX_FLAGS": "$env{APP_DEBUG} $env{APP_ERROR}" }
+    }, {
+        "name": "local-outer-valid",
+        "inherits": [ "debug", "local-base_", "local-debug_" ],
+        "displayName": "Local Debug Outer Valid",
+        "binaryDir": "${sourceDir}/temp/presets_/local-outer-valid",
+        "cacheVariables": { "CMAKE_CXX_FLAGS": "$env{APP_DEBUG}" }
+    }, {
+        "name": "local-valid",
+        "inherits": [ "debug", "local-base_", "local-debug_", "local-inner_" ],
+        "displayName": "Local Debug Inner Valid",
+        "binaryDir": "${sourceDir}/temp/presets_/local-valid",
+        "cacheVariables": { "CMAKE_CXX_FLAGS": "$env{APP_DEBUG} $env{APP_INNER}" }
+    }, {
+        "name": "local-valid-flash",
+        "inherits": [ "flash", "local-base_", "local-inner_" ],
+        "displayName": "Local Flash Inner Valid",
+        "binaryDir": "${sourceDir}/temp/presets_/local-valid-flash",
+        "cacheVariables": { "CMAKE_CXX_FLAGS": "$env{APP_INNER}" }
+    }, {
+        "name": "local-void",
+        "inherits": [ "flash", "local-base_" ],
+        "displayName": "Local Flash Outer Valid",
+        "binaryDir": "${sourceDir}/temp/presets_/local-void"
+    }],
+    "buildPresets": [
+        { "name": "local", "configurePreset": "local" },
+        { "name": "local-flash", "configurePreset": "local-flash" },
+        { "name": "local-flash-outer", "configurePreset": "local-flash-outer" },
+        { "name": "local-outer", "configurePreset": "local-outer" },
+        { "name": "local-outer-valid", "configurePreset": "local-outer-valid" },
+        { "name": "local-valid", "configurePreset": "local-valid" },
+        { "name": "local-valid-flash", "configurePreset": "local-valid-flash" },
+        { "name": "local-void", "configurePreset": "local-void" }
+    ]
+}

@@ -1,0 +1,30 @@
+olegease/[APP] [LEGEND]
+Ⓒ Copyright (C) [YEAR] Oleg'Ease'Kharchuk ᦒ
+
+   This project is licensed under the GNU Affero General Public License v3.0 or later.
+   Full license text is available in the root LICENSE file.
+
+   The Recommended "How to Apply These Terms to Your New Programs"
+   as "Standard License Header" for source code files as follows:
+
+   STANDARD LICENSE HEADER BEGIN
+   <one line to give the program's name and a brief idea of what it does.>
+   Copyright (C) <year> <name of author>
+
+   This program is free software: you can redistribute it and/or modify it under the terms of the GNU Affero General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+
+   This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
+
+   You should have received a copy of the GNU Affero General Public License along with this program. If not, see <https://www.gnu.org/licenses/>.
+   STANDARD LICENSE HEADER END
+
+   For this project, the "Standard License Header" above is represented by
+   the "Practical License Footer" located at the end of source code files:
+
+   PRACTICAL LICENSE FOOTER BEGIN
+   GNU Affero General Public License v3.0 or later
+   NO WARRANTY OF ANY KIND more details at <https://www.gnu.org/licenses/>
+   SPDX-License-Identifier: AGPL-3.0-or-later
+   app: [`NAME`] [LEGEND]
+   [COPYRIGHT NOTICE]
+   PRACTICAL LICENSE FOOTER END

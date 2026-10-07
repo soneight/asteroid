@@ -1,0 +1,17 @@
+GNU Affero General Public License v3.0 or later
+NO WARRANTY OF ANY KIND more details at <https://www.gnu.org/licenses/>
+SPDX-License-Identifier: AGPL-3.0-or-later
+app: [`NAME`] [LEGEND]
+Ⓒ Copyright (C) [YEAR] Oleg'Ease'Kharchuk ᦒ
+----------------------------------------------------------------
+Commands
+        usage   : make [command]                                ;
+        cmake   : configure project default preset into build   ;
+        ninja   : generates project default preset into build   ;
+        build   : configure and generate project into build     ;
+        debug   : configure and generate debug into temp        ;
+        flash   : configure and generate release into temp      ;
+        presets : copy user presets example if not exists       ;
+        clean   : remove force recursive build directory        ;
+        wipe-tmp: remove force recursive temp presets_ folder   ;
+================================================================

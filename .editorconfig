@@ -1,0 +1,8 @@
+root = true
+[*.{cxx,hxx,cpp,hpp,cc,hh,c,h,asm,s,html,css,mjs,js,md,txt}]
+charset = utf-8
+end_of_line = lf
+indent_size = 3
+indent_style = space
+insert_final_newline = true
+trim_trailing_whitespace = true
