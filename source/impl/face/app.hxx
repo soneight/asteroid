@@ -3,6 +3,7 @@
 
 #include <cassert>
 #include <son8/matfourd/mat.hxx>
+#include <son8/matfourd/vec.hxx>
 
 #ifndef APP_DEBUG
 #define APP_ASSERT( check ) ( (void)0 )
@@ -15,6 +16,7 @@
 namespace app {
    namespace m4d = son8::matfourd;
 
+   using Col3f = m4d::Col3< float >;
    using Col4x4f = m4d::Col4x4< float >;
 } // namespace app
 

@@ -15,6 +15,18 @@ if( NOT TARGET son8__matfourd )
    fetchcontent_makeavailable( son8__matfourd )
 endif( )
 message( STATUS "${SON8_APP}: target `son8__matfourd` found" )
+# ---- `windowed`
+if( NOT TARGET son8__windowed )
+   include( FetchContent )
+   message( STATUS "${SON8_APP}: FetchContent `soneight/windowed`" )
+   fetchcontent_declare(
+      son8__windowed
+      GIT_REPOSITORY https://github.com/soneight/windowed.git
+      GIT_TAG        8bedc378ec08500981f1d27dd302c4fce0c5f9d9 # v0.6.1
+   )
+   fetchcontent_makeavailable( son8__windowed )
+endif( )
+message( STATUS "${SON8_APP}: target `son8__windowed` found" )
 # app
 # -- face
 set( SON8_APP_FACE ${SON8_APP}_FACE )
@@ -28,7 +40,7 @@ target_link_libraries( ${SON8_APP_IMPL} PUBLIC ${SON8_APP_FACE} son8::matfourd )
 # -- main
 add_executable( ${SON8_APP} )
 target_sources( ${SON8_APP} PRIVATE main.cxx )
-target_link_libraries( ${SON8_APP} PRIVATE ${SON8_APP_IMPL} )
+target_link_libraries( ${SON8_APP} PRIVATE ${SON8_APP_IMPL} son8::windowed glad::son8 )
 
 # GNU Affero General Public License v3.0 or later
 # NO WARRANTY OF ANY KIND more details at <https://www.gnu.org/licenses/>
