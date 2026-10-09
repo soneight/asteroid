@@ -4,7 +4,9 @@
         "name": "local-base_",
         "hidden": true,
         "cacheVariables": {
-            "FETCHCONTENT_SOURCE_DIR_{TARGET_NAME}": "/path/to/target/source/directory"
+            "FETCHCONTENT_SOURCE_DIR_SON8_MATFOURD": "/PATH_TO/soneight/matfourd",
+            "FETCHCONTENT_SOURCE_DIR_SON8_OVERGLAD": "/PATH_TO/soneight/overglad",
+            "FETCHCONTENT_SOURCE_DIR_SON8_WINDOWED": "/PATH_TO/soneight/windowed"
         }
     }, {
         "name": "local-debug_",

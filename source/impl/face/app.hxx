@@ -1,5 +1,5 @@
-#ifndef SON8_APP_HXX
-#define SON8_APP_HXX
+#ifndef SON8_ASTEROID_APP_HXX
+#define SON8_ASTEROID_APP_HXX
 
 #include <cassert>
 #include <son8/matfourd/mat.hxx>
@@ -16,11 +16,15 @@
 namespace app {
    namespace m4d = son8::matfourd;
 
+   constexpr char New_Line = '\n';
+
+   using Col2f = m4d::Col2< float >;
    using Col3f = m4d::Col3< float >;
    using Col4x4f = m4d::Col4x4< float >;
+
 } // namespace app
 
-#endif//SON8_APP_HXX
+#endif//SON8_ASTEROID_APP_HXX
 
 // GNU Affero General Public License v3.0 or later
 // NO WARRANTY OF ANY KIND more details at <https://www.gnu.org/licenses/>
