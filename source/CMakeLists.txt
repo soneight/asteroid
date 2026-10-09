@@ -15,6 +15,18 @@ if( NOT TARGET son8__matfourd )
    fetchcontent_makeavailable( son8__matfourd )
 endif( )
 message( STATUS "${SON8_APP}: target `son8__matfourd` found" )
+# ---- `overglad`
+if( NOT TARGET son8__overglad )
+   include( FetchContent )
+   message( STATUS "${SON8_APP}: FetchContent `soneight/overglad`" )
+   fetchcontent_declare(
+      son8__overglad
+      GIT_REPOSITORY https://github.com/soneight/overglad.git
+      GIT_TAG        868a2184b623e64911782db19242c293d4d52f6a # v0.8.2
+   )
+   fetchcontent_makeavailable( son8__overglad )
+endif( )
+message( STATUS "${SON8_APP}: target `son8__overglad` found" )
 # ---- `windowed`
 if( NOT TARGET son8__windowed )
    include( FetchContent )
@@ -40,7 +52,7 @@ target_link_libraries( ${SON8_APP_IMPL} PUBLIC ${SON8_APP_FACE} son8::matfourd )
 # -- main
 add_executable( ${SON8_APP} )
 target_sources( ${SON8_APP} PRIVATE main.cxx )
-target_link_libraries( ${SON8_APP} PRIVATE ${SON8_APP_IMPL} son8::windowed glad::son8 )
+target_link_libraries( ${SON8_APP} PRIVATE ${SON8_APP_IMPL} son8::overglad son8::windowed )
 
 # GNU Affero General Public License v3.0 or later
 # NO WARRANTY OF ANY KIND more details at <https://www.gnu.org/licenses/>

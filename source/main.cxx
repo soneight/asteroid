@@ -1,6 +1,7 @@
 #include "impl/face/app.hxx"
 // son8
-#include <glad/son8.hxx>
+#define SON8_OVERGLAD_INCLUDE_DEPRECATED
+#include <son8/overglad/v3_3.hxx>
 #include <son8/matfourd/print.hxx>
 #include <son8/windowed.hxx>
 // std
@@ -8,6 +9,9 @@
 #include <thread>
 
 namespace wnd = son8::windowed;
+namespace gl = son8::overglad;
+namespace gle = gl::enums;
+// namespace glt = gl::types;
 
 int main( [[maybe_unused]] int argc, [[maybe_unused]] char *argv[] ) {
    APP_ASSERT_MSG( argc == 1, "argc must contain one argument" );
@@ -31,8 +35,8 @@ int main( [[maybe_unused]] int argc, [[maybe_unused]] char *argv[] ) {
       // NOTE: right now `free_opengl` is necessary as `run_swap` expects not bound opengl
       window.free_opengl( );
       window.run_swap( [&window]{
-         glClearColor( .125f, .125f, .125f, 0 );
-         glClear( GL_COLOR_BUFFER_BIT );
+         gl::clear_color( .125f, 0 );
+         gl::clear( gle::Clearbit::Color );
       });
    });
 
