@@ -14,41 +14,39 @@ namespace app {
    namespace gl = son8::overglad;
    namespace glt = gl::types;
 
-   enum class Vert_Shaders : unsigned {
+   enum class VertShaders : unsigned {
       Default,
-      Stars, // TODO
+      Stars,
       Last_,
    };
 
-   enum class Frag_Shaders: unsigned {
+   enum class FragShaders: unsigned {
       Default,
-      Stars, // TODO
+      Stars,
       Last_,
    };
 
-   void shader_source( glt::Shader shader, Vert_Shaders name );
-   void shader_source( glt::Shader shader, Frag_Shaders name );
+   void shader_source( glt::Shader shader, VertShaders name );
+   void shader_source( glt::Shader shader, FragShaders name );
 
    void shader_compile_errors( glt::Shader shader );
    void program_link_errors( glt::Program program );
 
-
    class Stars {
       static constexpr GLuint Position_Location = 0u;
       static constexpr GLint Vertex_Size = 3;
-
-      glt::VertexArray indexVertex;
-      glt::BufferArray indexBuffer;
-      glt::Shader vert, frag;
-      glt::Program prog;
-      GrowStars stars;
-      static constexpr GLuint Star_Bytes = sizeof( stars[0] );
+      GLint uViewProj_{ -1 };
+      glt::VertexArray indexVertex_;
+      glt::BufferArray indexBuffer_;
+      glt::Shader vert_, frag_;
+      glt::Program prog_;
+      GrowStars stars_;
+      static constexpr GLuint Star_Bytes = sizeof( stars_[0] );
    public:
       Stars( unsigned count );
-      void bind( );
-      void draw( );
-      void free( );
+      void draw( Col4x4f const &matViewProj );
    };
-}
+
+} // namespace app
 
 #endif//SON8_ASTEROID_OPENGL_HXX

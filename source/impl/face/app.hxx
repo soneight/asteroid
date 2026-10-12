@@ -2,11 +2,8 @@
 #define SON8_ASTEROID_APP_HXX
 
 #include "alias.hxx"
-// son8
 // std
 #include <cassert>
-#include <random>
-#include <vector>
 
 #ifndef APP_DEBUG
 #define APP_ASSERT( check ) ( (void)0 )
@@ -25,6 +22,8 @@ namespace app {
    constexpr auto Math_PIf = 3.14159265f;
    constexpr auto Math_PId = 3.141592653589793;
    constexpr auto Max_Stars = 1u << 16u;
+
+   constexpr auto Uniform_Not_Found = -1;
 
 } // namespace app
 

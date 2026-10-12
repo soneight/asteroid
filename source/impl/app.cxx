@@ -1,9 +1,14 @@
 #include "face/app.hxx"
 #include "face/data.hxx"
 #include "face/opengl.hxx"
+// std
 #include <array>
 #include <iostream>
+#include <random>
 #include <string_view>
+#include <vector>
+// NOTE: deliberately include source file for shaders
+#include "shaders.inc.cxx"
 
 namespace app {
    namespace gle = gl::enums;
@@ -11,64 +16,45 @@ namespace app {
 // -- opengl
 namespace {
    using namespace std::string_view_literals;
-   using Shaders = std::array< std::string_view, 2 >;
+   using Size = std::size_t;
+   using View = std::string_view;
+   using VertShadersArray = std::array< View, static_cast< Size >( VertShaders::Last_ )>;
+   using FragShadersArray = std::array< View, static_cast< Size >( FragShaders::Last_ )>;
 
-   constexpr auto vertShaders = Shaders{{
-      // Default
-      R"GLSL(#version 330 core
-layout (location=0) in vec2 appPos;
-layout (location=1) in vec3 appColor;
+   template< gle::Shader Shader_Type >
+   constexpr auto extract_shader_guard_helper( ) -> View {
+      if constexpr ( Shader_Type == gle::Shader::Vertex ) return "//!VERT"sv;
+      else if constexpr ( Shader_Type == gle::Shader::Fragment ) return "//!FRAG"sv;
+      else return ""sv;
+   }
 
-out vec4 vertColor;
+   template< gle::Shader Shader_Type >
+   constexpr auto extract_shader( View source ) -> View {
+      View guard = extract_shader_guard_helper< Shader_Type >( );
+      if ( guard.empty( )) return ""sv;
 
-void main( ) {
-   vertColor = vec4( appColor, 1.0 );
-   gl_Position = vec4( appPos, 0.0, 1.0 );
-}
-      )GLSL"sv,
-      // Stars
-      R"GLSL(#version 330 core
-layout (location=0) in vec3 appPos;
+      Size guardPos = source.find( guard );
+      if ( guardPos == View::npos ) return ""sv;
+      Size versionPos = source.find( "#version"sv, guardPos );
+      if ( versionPos == View::npos ) return ""sv;
+      Size endPos = source.find( "//!"sv, versionPos );
+      if ( endPos == View::npos ) return ""sv;
+      return source.substr( versionPos, endPos - versionPos );
+   }
 
-out float worldDistance;
+#ifdef APP_INNER
+   static_assert( extract_shader< gle::Shader::Vertex >( "//!VERT\n#version\nvoid main( )//!FRAG"sv )
+      == "#version\nvoid main( )"sv  );
+#endif
 
-void main( ) {
-   gl_PointSize = 2.0;
-   worldDistance = length( appPos );
-   gl_Position = vec4( appPos, 1.0 );
-}
-      )GLSL"sv,
+   constexpr auto Vert_Shaders = VertShadersArray{{
+      extract_shader< gle::Shader::Vertex >( Default_Shader ),
+      extract_shader< gle::Shader::Vertex >( Stars_Shader ),
    }};
 
-   constexpr auto fragShaders = Shaders{{
-      // Default
-      R"GLSL(#version 330 core
-in vec4 vertColor;
-out vec4 fragColor;
-
-void main( ) {
-   fragColor = vertColor;
-}
-      )GLSL"sv,
-      // Stars
-      R"GLSL(#version 330 core
-in vec4 vertColor;
-out vec4 fragColor;
-
-in float worldDistance;
-
-void main( ) {
-   vec3 color;
-   if ( worldDistance < 0.35 ) {
-      color = vec3( 0.6, 0.8, 1.0 );
-   } else if ( worldDistance < 0.7 ) {
-      color = vec3( 1.0, 0.9, 0.6 );
-   } else {
-      color = vec3( 0.8, 0.4, 0.3 );
-   }
-   fragColor = vec4( color, 1.0 );
-}
-      )GLSL"sv
+   constexpr auto Frag_Shaders = FragShadersArray{{
+      extract_shader< gle::Shader::Fragment >( Default_Shader ),
+      extract_shader< gle::Shader::Fragment >( Stars_Shader ),
    }};
 
    static constexpr auto Info_Log_Size = 1024u;
@@ -105,11 +91,11 @@ void main( ) {
 
 } // namespace app
 
-void app::shader_source( glt::Shader shader, Vert_Shaders name ) {
-   upload_source( shader, vertShaders[static_cast< unsigned >( name )] );
+void app::shader_source( glt::Shader shader, VertShaders name ) {
+   upload_source( shader, Vert_Shaders[static_cast< unsigned >( name )] );
 }
-void app::shader_source( glt::Shader shader, Frag_Shaders name ) {
-   upload_source( shader, fragShaders[static_cast< unsigned >( name )] );
+void app::shader_source( glt::Shader shader, FragShaders name ) {
+   upload_source( shader, Frag_Shaders[static_cast< unsigned >( name )] );
 }
 
 void app::shader_compile_errors( glt::Shader shader ) {
@@ -121,29 +107,31 @@ void app::program_link_errors( glt::Program program ) {
 }
 
 app::Stars::Stars( unsigned count ) {
-   stars = generate_stars( count );
-   vert = gl::shader( gle::Shader::Vertex );
-   frag = gl::shader( gle::Shader::Fragment );
-   shader_source( vert, Vert_Shaders::Stars );
-   shader_source( frag, Frag_Shaders::Stars );
-   gl::compile( vert );
-   shader_compile_errors( vert );
-   gl::compile( frag );
-   shader_compile_errors( frag );
-   prog = gl::program( );
-   gl::attach( prog, vert );
-   gl::attach( prog, frag );
-   gl::link( prog );
-   gl::free( vert );
-   gl::free( frag );
-   program_link_errors( prog );
-   gl::gen( indexVertex );
-   gl::bind( indexVertex );
-   gl::gen( indexBuffer );
-   gl::bind( indexBuffer );
-   gl::buffer_data( indexBuffer.type( )
-      , stars.size( ) * Star_Bytes
-      , stars.data( )
+   stars_ = generate_stars( count );
+   vert_ = gl::shader( gle::Shader::Vertex );
+   frag_ = gl::shader( gle::Shader::Fragment );
+   shader_source( vert_, VertShaders::Stars );
+   shader_source( frag_, FragShaders::Stars );
+   gl::compile( vert_ );
+   shader_compile_errors( vert_ );
+   gl::compile( frag_ );
+   shader_compile_errors( frag_ );
+   prog_ = gl::program( );
+   gl::attach( prog_, vert_ );
+   gl::attach( prog_, frag_ );
+   gl::link( prog_ );
+   gl::free( vert_ );
+   gl::free( frag_ );
+   program_link_errors( prog_ );
+   uViewProj_ = gl::get_uniform_location( prog_, "uViewProj" );
+   APP_ASSERT_MSG( uViewProj_ != Uniform_Not_Found, "app: Stars::Stars uViewProj uniform not found" );
+   gl::gen( indexVertex_ );
+   gl::bind( indexVertex_ );
+   gl::gen( indexBuffer_ );
+   gl::bind( indexBuffer_ );
+   gl::buffer_data( indexBuffer_.type( )
+      , stars_.size( ) * Star_Bytes
+      , stars_.data( )
       , GL_STATIC_DRAW );
    gl::vertex_attrib_pointer( Position_Location
       , Vertex_Size
@@ -152,21 +140,15 @@ app::Stars::Stars( unsigned count ) {
       , Star_Bytes
       , (void*)0 );
    gl::enable_vertex_attrib_array( Position_Location );
-
 }
 
-void app::Stars::bind( ) {
-   gl::bind( prog );
-   gl::bind( indexVertex );
-
-}
-
-void app::Stars::draw( ) {
-   gl::draw_arrays( GL_POINTS, Zero_S, stars.size( ));
-}
-
-void app::Stars::free( ) {
-
+void app::Stars::draw( Col4x4f const &matViewProj ) {
+   gl::bind( prog_ );
+   gl::bind( indexVertex_ );
+   gl::uniform_matrix_4( uViewProj_, 1, GL_FALSE, matViewProj.data( ));
+   gl::depth_mask( GL_FALSE );
+   gl::draw_arrays( GL_POINTS, Zero_S, stars_.size( ));
+   gl::depth_mask( GL_TRUE );
 }
 
 // -- stars
@@ -174,10 +156,10 @@ auto app::generate_stars( unsigned count ) -> GrowStars {
    if ( Max_Stars < count ) { count = Zero_U; }
    APP_ASSERT_MSG( count, "app: no stars to generate" );
    using Dist = std::uniform_real_distribution< float >;
-   std::mt19937 rng{ 8 };
-   Dist distAngle{ Zero_F, Math_PIf };
+   std::mt19937 rng{ 0 };
+   Dist distAngle{ Zero_F, 2.f * Math_PIf };
    Dist distCos{-1.f,+1.f };
-   Dist distRadius{-1.f,+1.f };
+   Dist distRadius{2.f,5.f };
 
    GrowStars stars;
    stars.reserve( count );

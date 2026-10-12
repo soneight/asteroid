@@ -47,7 +47,9 @@ target_compile_options( ${SON8_APP_FACE} INTERFACE $<$<CXX_COMPILER_ID:MSVC>:/ut
 # -- impl
 set( SON8_APP_IMPL ${SON8_APP}_IMPL )
 add_library( ${SON8_APP_IMPL} STATIC )
-target_sources( ${SON8_APP_IMPL} PRIVATE impl/app.cxx )
+target_sources( ${SON8_APP_IMPL} PRIVATE
+   impl/app.cxx
+)
 target_link_libraries( ${SON8_APP_IMPL} PUBLIC ${SON8_APP_FACE} son8::matfourd son8::overglad )
 # -- main
 add_executable( ${SON8_APP} )
