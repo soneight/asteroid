@@ -4,11 +4,14 @@
 #include <son8/matfourd/mat.hxx>
 #include <son8/matfourd/vec.hxx>
 // std
+#include <cstdint>
 #include <chrono>
 #include <vector>
 
 namespace app {
    namespace m4d = son8::matfourd;
+
+   using Unt2 = std::uint32_t;
 
    using Col2f = m4d::Col2< float >;
    using Col3f = m4d::Col3< float >;

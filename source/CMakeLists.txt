@@ -54,7 +54,7 @@ target_link_libraries( ${SON8_APP_IMPL} PUBLIC ${SON8_APP_FACE} son8::matfourd s
 # -- main
 add_executable( ${SON8_APP} )
 target_sources( ${SON8_APP} PRIVATE main.cxx )
-target_link_libraries( ${SON8_APP} PRIVATE ${SON8_APP_IMPL} son8::windowed )
+target_link_libraries( ${SON8_APP} PRIVATE ${SON8_APP_IMPL} son8::windowed glfw::son8 )
 
 # GNU Affero General Public License v3.0 or later
 # NO WARRANTY OF ANY KIND more details at <https://www.gnu.org/licenses/>

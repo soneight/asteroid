@@ -3,6 +3,7 @@
 
 #include "alias.hxx"
 // std
+#include <atomic>
 #include <cassert>
 
 #ifndef APP_DEBUG
@@ -12,6 +13,8 @@
 #define APP_ASSERT( check ) assert( check )
 #define APP_ASSERT_MSG( check, msg ) assert( check and msg )
 #endif//APP_DEBUG
+
+#define APP_DATA static constexpr auto
 
 namespace app {
 
@@ -25,7 +28,23 @@ namespace app {
 
    constexpr auto Uniform_Not_Found = -1;
 
+   struct Action {
+      using InputMask = Unt2;
+      APP_DATA Pitch_DN = InputMask{ 1u << 0u }; // W
+      APP_DATA Pitch_UP = InputMask{ 1u << 1u }; // S
+      APP_DATA Yaw_LT = InputMask{ 1u << 2u }; // A
+      APP_DATA Yaw_RT = InputMask{ 1u << 3u }; // D
+      APP_DATA Roll_CCW = InputMask{ 1u << 4 }; // Q
+      APP_DATA Roll_CW = InputMask{ 1u << 5 }; // E
+      APP_DATA Speed = InputMask{ 1u << 6 }; // Space
+      APP_DATA Brake = InputMask{ 1u << 7 }; // Shift
+   };
+
 } // namespace app
+
+namespace app::globals {
+   inline std::atomic< Action::InputMask > inputMask{ };
+}
 
 #endif//SON8_ASTEROID_APP_HXX
 

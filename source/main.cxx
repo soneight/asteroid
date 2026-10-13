@@ -2,6 +2,7 @@
 #include "impl/face/opengl.hxx"
 #include "impl/face/math.hxx"
 // son8
+#include <glfw/son8.hxx>
 #include <son8/matfourd/print.hxx>
 #include <son8/windowed.hxx>
 // std
@@ -45,12 +46,38 @@ int main( [[maybe_unused]] int argc, [[maybe_unused]] char *argv[] ) {
    static constexpr auto Aspect_F = 1.f * Window_W / Window_H;
 
    Cfg windowConfig{
-      Cfg::Width{ 960u },
-      Cfg::Height{ 540u },
+      Cfg::Width{ Window_W },
+      Cfg::Height{ Window_H },
       Cfg::Version{ wnd::OpenGL::Vx0303CE }
    };
 
    wnd::Window window{ windowConfig };
+
+   static auto windowPtr = &window;
+
+   glfwSetKeyCallback( window, []( GLFWwindow *w, int key, int scan, int action, int mods ){
+      bool pressed = action == GLFW_PRESS;
+      if ( key == GLFW_KEY_ESCAPE and pressed ) { windowPtr->close( ); return; }
+
+      Action::InputMask inputBit;
+      switch ( key ) {
+      case GLFW_KEY_W: { inputBit = Action::Pitch_DN; break; }
+      case GLFW_KEY_S: { inputBit = Action::Pitch_UP; break; }
+      case GLFW_KEY_A: { inputBit = Action::Yaw_LT; break; }
+      case GLFW_KEY_D: { inputBit = Action::Yaw_RT; break; }
+      case GLFW_KEY_Q: { inputBit = Action::Roll_CCW; break; }
+      case GLFW_KEY_E: { inputBit = Action::Roll_CW; break; }
+      case GLFW_KEY_SPACE: { inputBit = Action::Speed; break; }
+      case GLFW_KEY_LEFT_SHIFT: { inputBit = Action::Brake; break; }
+         default: { return; }
+      }
+
+      switch ( action ) {
+      case GLFW_PRESS: { globals::inputMask.fetch_or( inputBit, std::memory_order_relaxed ); } break;
+      case GLFW_RELEASE: { globals::inputMask.fetch_and( ~inputBit, std::memory_order_relaxed ); } break;
+         default: return;
+      }
+   });
 
    std::thread drawThread( [&window] {
       if ( window.is_error( window.bind_opengl( ))) { throw std::runtime_error{ "draw thread could not bound opengl" }; }
@@ -67,10 +94,12 @@ int main( [[maybe_unused]] int argc, [[maybe_unused]] char *argv[] ) {
          std::chrono::duration< float > const elapsed = currTime - prevTime;
          prevTime = currTime;
          time += elapsed.count( ); // (or elapsed delta time)
-
-         // TODO: make camera class later when basic app input structure would be ready
-         Col3f const eye{ 0.f, 0.f, 0.f };
-         float const yaw   = time * 0.25f;
+         // TODO: process inputs when ship model is ready
+         Action::InputMask input = globals::inputMask.load( std::memory_order_relaxed );
+         // TODO: make camera class later when basic app input structure and
+         // \ major movements would be ready
+         Col3f const eye{ };
+         float const yaw = time * 0.25f;
          float const pitch = std::sin( time * 0.15f ) * 0.4f;
          Col3f const forward{
             std::sin( yaw ) * std::cos( pitch ),
