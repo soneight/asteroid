@@ -1,6 +1,7 @@
 #include "face/app.hxx"
 #include "face/data.hxx"
 #include "face/opengl.hxx"
+#include "face/math.hxx"
 // std
 #include <array>
 #include <iostream>
@@ -50,11 +51,13 @@ namespace {
    constexpr auto Vert_Shaders = VertShadersArray{{
       extract_shader< gle::Shader::Vertex >( Default_Shader ),
       extract_shader< gle::Shader::Vertex >( Stars_Shader ),
+      extract_shader< gle::Shader::Vertex >( Ship_Shader ),
    }};
 
    constexpr auto Frag_Shaders = FragShadersArray{{
       extract_shader< gle::Shader::Fragment >( Default_Shader ),
       extract_shader< gle::Shader::Fragment >( Stars_Shader ),
+      extract_shader< gle::Shader::Fragment >( Ship_Shader ),
    }};
 
    static constexpr auto Info_Log_Size = 1024u;
@@ -107,7 +110,7 @@ void app::program_link_errors( glt::Program program ) {
 }
 
 app::Stars::Stars( unsigned count ) {
-   stars_ = generate_stars( count );
+   generate_Points( count );
    vert_ = gl::shader( gle::Shader::Vertex );
    frag_ = gl::shader( gle::Shader::Fragment );
    shader_source( vert_, VertShaders::Stars );
@@ -142,6 +145,30 @@ app::Stars::Stars( unsigned count ) {
    gl::enable_vertex_attrib_array( Position_Location );
 }
 
+// -- stars
+void app::Stars::generate_Points( unsigned count ) {
+   if ( Max_Stars < count ) { count = Zero_U; }
+   APP_ASSERT_MSG( count, "app: no stars to generate" );
+   using Dist = std::uniform_real_distribution< float >;
+   std::mt19937 rng{ 0 };
+   Dist distAngle{ Zero_F, 2.f * math::PI_f };
+   Dist distCos{-1.f,+1.f };
+   Dist distRadius{2.f,5.f };
+
+   stars_.reserve( count );
+
+   while ( count-- ) {
+      float theta = distAngle( rng );
+      float phi = std::acos( distCos( rng ));
+      float radius = distRadius( rng );
+      stars_.push_back( Col3f{
+         radius * std::sin( phi ) * std::cos( theta ),
+         radius * std::sin( phi ) * std::sin( theta ),
+         radius * std::cos( phi )
+      });
+   }
+}
+
 void app::Stars::draw( Col4x4f const &matViewProj ) {
    gl::bind( prog_ );
    gl::bind( indexVertex_ );
@@ -151,31 +178,140 @@ void app::Stars::draw( Col4x4f const &matViewProj ) {
    gl::depth_mask( GL_TRUE );
 }
 
-// -- stars
-auto app::generate_stars( unsigned count ) -> GrowStars {
-   if ( Max_Stars < count ) { count = Zero_U; }
-   APP_ASSERT_MSG( count, "app: no stars to generate" );
-   using Dist = std::uniform_real_distribution< float >;
-   std::mt19937 rng{ 0 };
-   Dist distAngle{ Zero_F, 2.f * Math_PIf };
-   Dist distCos{-1.f,+1.f };
-   Dist distRadius{2.f,5.f };
+auto app::Ship::make_Facet( Ref< Col3f > a, Ref< Col3f > b, Ref< Col3f > c, Ref< Col3f > color ) -> Facet {
+   Col3f faceNormal = math::normalize(( b - a ) ^ ( c - a ));
+   return Facet{
+      Vertex{ a, faceNormal, color },
+      Vertex{ b, faceNormal, color },
+      Vertex{ c, faceNormal, color }
+   };
+}
 
-   GrowStars stars;
-   stars.reserve( count );
+auto app::Ship::generate_Mesh(  ) -> GrowVertex {
+   // TODO: remodel ship
+   // landmark coordinates
+   Col3f const nose{ 0.0f, 0.0f, -5.0f };
+   Col3f const wingLeft{ -3.5f, 0.0f, 2.5f };
+   Col3f const wingRight{ 3.5f, 0.0f, 2.5f };
+   Col3f const cockpit{ 0.0f, 1.2f, -0.5f };
+   Col3f const belly{ 0.0f, -0.8f, 0.5f };
+   Col3f const tail{ 0.0f, 0.3f, 3.0f };
+   // color palette
+   Col3f const hullColor{ 0.75f, 0.78f, 0.82f };
+   Col3f const glassColor{ 0.20f, 0.60f, 0.90f };
+   Col3f const bellyColor{ 0.30f, 0.32f, 0.35f };
+   Col3f const engineColor{ 0.95f, 0.40f, 0.15f };
 
-   while ( count-- ) {
-      float theta = distAngle( rng );
-      float phi = std::acos( distCos( rng ));
-      float radius = distRadius( rng );
-      stars.push_back( Col3f{
-         radius * std::sin( phi ) * std::cos( theta ),
-         radius * std::sin( phi ) * std::sin( theta ),
-         radius * std::cos( phi )
-      });
-   }
+   GrowVertex vertices;
+   vertices.reserve( 24u ); // 8 triangles * 3 vertices = 24 vertices
 
-   return stars;
+   auto const add_facet = [&]( Col3f const &a, Col3f const &b, Col3f const &c, Col3f const &color ) {
+      auto const facet = make_Facet( a, b, c, color );
+      vertices.push_back( facet[0] );
+      vertices.push_back( facet[1] );
+      vertices.push_back( facet[2] );
+   };
+
+   // --- TOP NOSE SECTION ---
+   // Top-Left nose facet (Counter-clockwise from outside: nose -> wingLeft -> cockpit)
+   add_facet( nose, wingLeft, cockpit, hullColor );
+
+   // Top-Right nose facet (Counter-clockwise: nose -> cockpit -> wingRight)
+   add_facet( nose, cockpit, wingRight, hullColor );
+
+   // --- COCKPIT / TOP REAR ---
+   // Left canopy facet
+   add_facet( cockpit, wingLeft, tail, glassColor );
+
+   // Right canopy facet
+   add_facet( cockpit, tail, wingRight, glassColor );
+
+   // --- UNDERBELLY ---
+   // Bottom-Left belly facet (viewed from underneath)
+   add_facet( nose, belly, wingLeft, bellyColor );
+
+   // Bottom-Right belly facet (viewed from underneath)
+   add_facet( nose, wingRight, belly, bellyColor );
+
+   // --- REAR ENGINES / BACK PLATE ---
+   // Rear-Left exhaust facet (viewed from behind)
+   add_facet( wingLeft, belly, tail, engineColor );
+
+   // Rear-Right exhaust facet (viewed from behind)
+   add_facet( wingRight, tail, belly, engineColor );
+
+   return vertices;
+}
+
+app::Ship::Ship( ) {
+   auto const mesh = generate_Mesh( );
+   vert_ = gl::shader( gle::Shader::Vertex );
+   frag_ = gl::shader( gle::Shader::Fragment );
+   shader_source( vert_, VertShaders::Ship );
+   shader_source( frag_, FragShaders::Ship );
+   gl::compile( vert_ );
+   gl::compile( frag_ );
+   shader_compile_errors( vert_ );
+   shader_compile_errors( frag_ );
+   prog_ = gl::program( );
+   gl::attach( prog_, vert_ );
+   gl::attach( prog_, frag_ );
+   gl::link( prog_ );
+   gl::free( vert_ );
+   gl::free( frag_ );
+   program_link_errors( prog_ );
+   uViewProj_ = gl::get_uniform_location( prog_, "uViewProj" );
+   APP_ASSERT_MSG( uViewProj_ != Uniform_Not_Found, "app: Ship::Ship uViewProj uniform not found" );
+   uModel_ = gl::get_uniform_location( prog_, "uModel" );
+   APP_ASSERT_MSG( uModel_ != Uniform_Not_Found, "app: Ship::Ship uViewProj uniform not found" );
+   vertexCount_ = mesh.size(); // 24 vertices
+
+   gl::gen( indexVertex_ );
+   gl::bind( indexVertex_ );
+
+   gl::gen( indexBuffer_ );
+   gl::bind( indexBuffer_ );
+
+   gl::buffer_data(
+      indexBuffer_.type(),
+      mesh.size() * sizeof( Vertex ),
+      mesh.data(),
+      GL_STATIC_DRAW
+   );
+
+   // Location 0: inPos (vec3)
+   gl::vertex_attrib_pointer(
+      0, 3, GL_FLOAT, GL_FALSE,
+      sizeof( Vertex ),
+      reinterpret_cast< void * >( offsetof( Vertex, pos ) )
+   );
+   gl::enable_vertex_attrib_array( Location_Pos );
+
+   // Location 1: inNormal (vec3)
+   gl::vertex_attrib_pointer(
+      1, 3, GL_FLOAT, GL_FALSE,
+      sizeof( Vertex ),
+      reinterpret_cast< void * >( offsetof( Vertex, normal ) )
+   );
+   gl::enable_vertex_attrib_array( Location_Normal );
+
+   // Location 2: inColor (vec3)
+   gl::vertex_attrib_pointer(
+      2, 3, GL_FLOAT, GL_FALSE,
+      sizeof( Vertex ),
+      reinterpret_cast< void * >( offsetof( Vertex, color ) )
+   );
+   gl::enable_vertex_attrib_array( Location_Color );
+}
+
+void app::Ship::draw( Ref< Col4x4f > matViewProj, Ref< Col4x4f > matModel ) {
+   gl::bind( prog_ );
+   gl::bind( indexVertex_ );
+
+   gl::uniform_matrix_4( uViewProj_, 1, GL_FALSE, matViewProj.data() );
+   gl::uniform_matrix_4( uModel_, 1, GL_FALSE, matModel.data() );
+
+   gl::draw_arrays( GL_TRIANGLES, Zero_S, vertexCount_ );
 }
 
 // GNU Affero General Public License v3.0 or later

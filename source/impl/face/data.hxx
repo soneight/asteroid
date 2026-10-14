@@ -5,8 +5,6 @@
 
 namespace app {
 
-   auto generate_stars( unsigned count ) -> GrowStars;
-
 }
 
 #endif//SON8_ASTEROID_DATA_HXX

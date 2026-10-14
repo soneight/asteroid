@@ -62,6 +62,50 @@ void main( ) {
 //!GLSL
    )GLSL"sv;
 
+   constexpr View Ship_Shader = R"GLSL(
+//!VERT
+#version 330 core
+layout (location = 0) in vec3 appPos;
+layout (location = 1) in vec3 appNormal;
+layout (location = 2) in vec3 appColor;
+
+uniform mat4 uViewProj;
+uniform mat4 uModel;
+
+out vec3 vWorldNormal;
+out vec3 vColor;
+
+void main() {
+   // Transform vertex to world space, then to screen
+   vec4 worldPos = uModel * vec4(appPos, 1.0);
+   gl_Position = uViewProj * worldPos;
+
+   // Transform normal vector by the 3x3 rotation of the model matrix
+   vWorldNormal = mat3(uModel) * appNormal;
+   vColor = appColor;
+}
+//!FRAG
+#version 330 core
+in vec3 vWorldNormal;
+in vec3 vColor;
+
+out vec4 fragColor;
+
+// Light direction pointing toward distant sun
+const vec3 uSunDir = normalize(vec3(0.5, 0.8, 0.3));
+const float ambient = 0.15;
+
+void main() {
+   vec3 norm = normalize( vWorldNormal );
+   float diff = max( dot( norm, uSunDir ), 0.0 );
+
+   // Ambient + Diffuse lighting
+   vec3 litColor = vColor * ( ambient + diff * 0.85 );
+   fragColor = vec4( litColor, 1.0 );
+}
+//!GLSL
+   )GLSL"sv;
+
 }} // anonymous app namespace
 
 // GNU Affero General Public License v3.0 or later

@@ -1,7 +1,16 @@
+#ifndef SON8_ASTEROID_MATH_HXX
+#define SON8_ASTEROID_MATH_HXX
+
 #include "alias.hxx"
+#include "app/camera.hxx"
+#include "app/macros.hxx"
+// std
 #include <cmath>
 
-namespace app {
+namespace app::math {
+
+   APP_EXPR PI_f = 3.14159265f;
+   APP_EXPR PI_d = 3.1415926535897932;
 
    inline auto length_squared( Col3f const &vec ) -> float { return vec * vec; }
 
@@ -28,29 +37,35 @@ namespace app {
       };
    }
 
-   inline auto look_at( Col3f const &eye, Col3f const &target, Col3f const &upRef ) {
-      Col3f const zAxis = normalize( eye - target );
-      Col3f const xAxis = normalize( upRef ^ zAxis );
+   inline auto look_at( Ref< Camera > camera ) {
+      Col3f const zAxis = normalize( camera.eye - camera.aim );
+      Col3f const xAxis = normalize( camera.sky ^ zAxis );
       Col3f const yAxis = zAxis ^ xAxis;
 
       return Col4x4f{
          { xAxis.x( ), yAxis.x( ), zAxis.x( ), 0.f },
          { xAxis.y( ), yAxis.y( ), zAxis.y( ), 0.f },
          { xAxis.z( ), yAxis.z( ), zAxis.z( ), 0.f },
-         { -( xAxis * eye ), -( yAxis * eye ), -( zAxis * eye ), 1.f }
+         { -( xAxis * camera.eye ), -( yAxis * camera.eye ), -( zAxis * camera.eye ), 1.f }
       };
    }
 
-   inline auto rotation_only( Col4x4f const &m ) {
+   inline auto rotation_only( Ref< Col4x4f > mat ) {
       return Col4x4f{
-         m.v1( ),
-         m.v2( ),
-         m.v3( ),
+         mat.v1( ),
+         mat.v2( ),
+         mat.v3( ),
          { 0.f, 0.f, 0.f, 1.f } // no translation
       };
    }
 
+   inline auto vec4( Col3f vec3, float w ) {
+      return Col4f{ vec3.x( ), vec3.y( ), vec3.z( ), w };
+   }
+
 } // namespace app
+
+#endif//SON8_ASTEROID_MATH_HXX
 
 // GNU Affero General Public License v3.0 or later
 // NO WARRANTY OF ANY KIND more details at <https://www.gnu.org/licenses/>

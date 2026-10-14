@@ -7,6 +7,7 @@
 #include <son8/windowed.hxx>
 // std
 #include <thread>
+#include <iostream>
 
 namespace wnd = son8::windowed;
 namespace gl = son8::overglad;
@@ -81,44 +82,111 @@ int main( [[maybe_unused]] int argc, [[maybe_unused]] char *argv[] ) {
 
    std::thread drawThread( [&window] {
       if ( window.is_error( window.bind_opengl( ))) { throw std::runtime_error{ "draw thread could not bound opengl" }; }
-      // TODO: add here opengl one-time data initialization before starting rendering
+
       gl::enable( GL_PROGRAM_POINT_SIZE );
       gl::enable( gle::Capability::Depth_Test );
+
       Stars stars{ 256 };
-      // NOTE: right now `free_opengl` is necessary as `run_swap` expects not bound opengl
+      Ship ship{ };
+
       window.free_opengl( );
-      float time = 0.f;
+
       auto prevTime = Clock::now( );
+
+      // --- SHIP PHYSICAL STATE ---
+      Col3f shipPosition{ 0.f, 0.f, 0.f };
+      Col3f shipVelocity{ 0.f, 0.f, 0.f };
+
+      // 3D Basis Triad (Orientation)
+      Col3f shipForward{  0.f, 0.f, -1.f };
+      Col3f shipUp{       0.f, 1.f,  0.f };
+      Col3f shipRight{    1.f, 0.f,  0.f };
+
       window.run_swap( [&]{
          auto currTime = Clock::now( );
          std::chrono::duration< float > const elapsed = currTime - prevTime;
          prevTime = currTime;
-         time += elapsed.count( ); // (or elapsed delta time)
-         // TODO: process inputs when ship model is ready
+         float const dt = elapsed.count( );
+         // ATTITUDE CONTROL
+         float const rotAngle = Ship::Rot_Speed * dt;
+         // process input
          Action::InputMask input = globals::inputMask.load( std::memory_order_relaxed );
-         // TODO: make camera class later when basic app input structure and
-         // \ major movements would be ready
-         Col3f const eye{ };
-         float const yaw = time * 0.25f;
-         float const pitch = std::sin( time * 0.15f ) * 0.4f;
-         Col3f const forward{
-            std::sin( yaw ) * std::cos( pitch ),
-            std::sin( pitch ),
-            -std::cos( yaw ) * std::cos( pitch )
+         // -- pitch (move nose up or down)
+         if ( input & Action::Pitch_UP ) {
+            shipForward = math::normalize( shipForward + ( shipUp * rotAngle ));
+            shipUp      = math::normalize( shipRight ^ shipForward );
+         }
+         if ( input & Action::Pitch_DN ) {
+            shipForward = math::normalize( shipForward - ( shipUp * rotAngle ));
+            shipUp      = math::normalize( shipRight ^ shipForward );
+         }
+         // -- yaw (move body left or right)
+         if ( input & Action::Yaw_LT ) {
+            shipForward = math::normalize( shipForward - ( shipRight * rotAngle ));
+            shipRight   = math::normalize( shipForward ^ shipUp );
+         }
+         if ( input & Action::Yaw_RT ) {
+            shipForward = math::normalize( shipForward + ( shipRight * rotAngle ));
+            shipRight   = math::normalize( shipForward ^ shipUp );
+         }
+         // -- roll (move wing counter clock-wise or clock-wise)
+         if ( input & Action::Roll_CCW ) {
+            shipRight = math::normalize( shipRight + ( shipUp * rotAngle ));
+            shipUp    = math::normalize( shipRight ^ shipForward );
+         }
+         if ( input & Action::Roll_CW ) {
+            shipRight = math::normalize( shipRight - ( shipUp * rotAngle ));
+            shipUp    = math::normalize( shipRight ^ shipForward );
+         }
+         // -- speed (accelerate or brake)
+         if ( input & Action::Speed ) {
+            // Push ship forward along its current nose direction
+            shipVelocity += shipForward * ( Ship::Thrust_Accel * dt );
+
+            // Clamp to top speed
+            float const currentSpeed = math::length( shipVelocity );
+            if ( currentSpeed > Ship::Max_Speed ) {
+               shipVelocity = ( shipVelocity * ( 1.f / currentSpeed )) * Ship::Max_Speed;
+            }
+         }
+         // TODO: right now not visible effect in empty space
+         // \ active: reduce velocity quickly
+         // \ passive: reduce velocity slowly
+         if ( input & Action::Brake ) { shipVelocity -= shipVelocity * ( Ship::Brake_Damp * dt ); }
+         else                         { shipVelocity -= shipVelocity * ( Ship::Drag_Damp * dt ); }
+#ifdef APP_DEBUG
+         std::cout << "speed: " << math::length( shipVelocity ) << ", velocity: " << shipVelocity << std::endl;
+#endif
+         // Integrate velocity into position
+         shipPosition += shipVelocity * dt;
+         // camera tracking ship
+         float constexpr ChaseDist = 14.0f; // behind
+         float constexpr ChaseHgt  =  4.0f; // above
+         Camera camera{
+            .eye = shipPosition - ( shipForward * ChaseDist ) + ( shipUp * ChaseHgt ),
+            .aim = shipPosition + ( shipForward * 4.0f ),
+            .sky = { shipUp.x( ), 1.0, shipUp.z( ) } //shipUp, // camera rolls with the ship
          };
-         Col3f const target = eye + forward;
-         Col3f const up{ 0.f, 1.f, 0.f };
-
-         Col4x4f const view = look_at( eye, target, up );
-         Col4x4f const proj = perspective( 1.047f, Aspect_F, 1.f, 2048.f );
-
+         // view projection matrix
+         Col4x4f const view = math::look_at( camera );
+         Col4x4f const proj = math::perspective( 1.047f, Aspect_F, 1.f, 2048.f );
          Col4x4f const viewProj = proj * view;
+         // ship model matrix
+         Col4x4f const shipModel{
+            math::vec4( shipRight   , 0.f ), // column 1: local X
+            math::vec4( shipUp      , 0.f ), // column 2: local Y
+            math::vec4(-shipForward , 0.f ), // column 3: local Z (facing -forward)
+            math::vec4( shipPosition, 1.f )  // column 4: translation
+         };
+         // rendering
          gl::clear_color( );
          gl::clear( gle::Clearbit::Color | gle::Clearbit::Depth );
-         // NOTE: stars do not need translation as they draw as points without depth test
-         stars.draw( proj * rotation_only( view ));
-      }); // window run_swap
-   }); // draw thread
+         // NOTE: depth mask disabled here
+         stars.draw( proj * math::rotation_only( view ) );
+         // player ship
+         ship.draw( viewProj, shipModel );
+      });
+   });
 
    window.run_poll( []{
 

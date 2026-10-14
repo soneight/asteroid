@@ -1,32 +1,20 @@
 #ifndef SON8_ASTEROID_APP_HXX
 #define SON8_ASTEROID_APP_HXX
 
+#include "app/macros.hxx"
+#include "app/camera.hxx"
 #include "alias.hxx"
 // std
 #include <atomic>
 #include <cassert>
 
-#ifndef APP_DEBUG
-#define APP_ASSERT( check ) ( (void)0 )
-#define APP_ASSERT_MSG( check, msg ) ( (void)0 )
-#else
-#define APP_ASSERT( check ) assert( check )
-#define APP_ASSERT_MSG( check, msg ) assert( check and msg )
-#endif//APP_DEBUG
-
-#define APP_DATA static constexpr auto
-
 namespace app {
 
-   constexpr char New_Line = '\n';
-   constexpr auto Zero_S = 0;
-   constexpr auto Zero_U = 0u;
-   constexpr auto Zero_F = 0.f;
-   constexpr auto Math_PIf = 3.14159265f;
-   constexpr auto Math_PId = 3.141592653589793;
-   constexpr auto Max_Stars = 1u << 16u;
-
-   constexpr auto Uniform_Not_Found = -1;
+   APP_EXPR New_Line = '\n';
+   APP_EXPR Zero_S = 0;
+   APP_EXPR Zero_U = 0u;
+   APP_EXPR Zero_F = 0.f;
+   APP_EXPR Max_Stars = 1u << 16u;
 
    struct Action {
       using InputMask = Unt2;

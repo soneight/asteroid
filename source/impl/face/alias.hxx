@@ -11,15 +11,20 @@
 namespace app {
    namespace m4d = son8::matfourd;
 
+   template< typename Type > using Ref = Type const &;
+
    using Unt2 = std::uint32_t;
+   using Size = std::size_t;
 
    using Col2f = m4d::Col2< float >;
    using Col3f = m4d::Col3< float >;
+   using Col4f = m4d::Col4< float >;
    using Col4x4f = m4d::Col4x4< float >;
 
    using GrowStars = std::vector< Col3f >;
 
    using Clock = std::chrono::steady_clock;
+
 }
 
 #endif//SON8_ASTEROID_ALIAS_HXX
